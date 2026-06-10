@@ -1,6 +1,6 @@
-const Conversation = require('../models/Conversation.model.js')
+const Conversation = require('../models/Conversation.js')
 const {uploadFileToCloudinary} = require('../config/cloudinary.js');
-const Message = require('../models/Message.model.js')
+const Message = require('../models/Message.js')
 
 
 

@@ -1,8 +1,8 @@
-const User = require("../models/user.model");
+const User = require("../models/User");
 const responseHandler = require("../utils/responseHandler");
 const otpGenrate = require('../utils/otpGenerator');
 const sendOtpToEmail = require('../services/emailservice');
-const Conversation = require('../models/conversation.model');
+const Conversation = require('../models/Conversation');
 
 const tiwiloService = require('../services/twilloservice');
 const generateToken = require("../utils/genrateToken");
