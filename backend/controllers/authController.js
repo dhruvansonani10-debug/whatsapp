@@ -2,8 +2,11 @@ const User = require("../models/user.model");
 const responseHandler = require("../utils/responseHandler");
 const otpGenrate = require('../utils/otpGenerator');
 const sendOtpToEmail = require('../services/emailservice');
+const Conversation = require('../models/conversation.model');
 
 const tiwiloService = require('../services/twilloservice');
+const generateToken = require("../utils/genrateToken");
+const {uploadFileToCloudinary} = require('../config/cloudinary');
 
 //send otp 
 
@@ -11,7 +14,7 @@ const tiwiloService = require('../services/twilloservice');
 const sendOtp = async (req,res)=>{
     const {phoneNumber,phoneSuffix,email} = req.body;
     const otp = otpGenrate();
-    const expiry = new Date(DAte.now() + 5 * 60 *1000);
+    const expiry = new Date(Date.now() + 5 * 60 *1000);
     let user;
     try{
         if(email){
@@ -100,4 +103,90 @@ const VerifyOtp = async(req,res)=>{
     }
 }
 
-module.exports = {sendOtp,VerifyOtp}
+const updateProfile = async(req,res)=>{
+    const {username,agreed,about} = req.body;
+    const userId= req.user.userId;
+    try{
+        const user = await User.findById(userId);
+        const file = req.file;
+        if(file){
+            const uploadResult = await uploadOnCloudinary(file);
+            console.log(uploadResult)
+            user.profilePicture = uploadResult?.secure_url;
+        }
+        else if(req.body.profilePicture){
+            user.profilePicture=req.body.profilePicture
+        }
+
+        if(username){
+            user.username=username
+        }
+        if(about){
+            user.about=about
+        }
+        if(agreed){
+            user.isAgreed=agreed
+        } 
+        await user.save();
+        return response(res,200,'profile updated successfully',user);
+    }catch(error){
+        console.log(error);
+        return response(res,500,'internal server error');
+    }
+}   
+
+const checkAuthenticated = async(req,res) => {
+    try{
+        const userId = req.user.userId;
+        if(!userId){
+            return response(res,200,'unauthenticated : please login');
+        }
+        const user = await User.findById(userId);
+        if(!user){
+            return response(res,404,'user not found');
+        }
+        return response(res,200,'user is authenticated',user);
+    }catch(error){
+        console.log(error);
+        return response(res,500,'internal server error');
+    }
+}
+
+const logout = async(req,res)=>{
+    try{
+        res.clearCookie('auth_token');
+        return response(res,200,'logged out successfully');
+    }catch(error){
+        console.log(error);
+        return response(res,500,'internal server error');
+    }
+}
+
+const getAllUser = async(req,res) => {
+    const loggedInUser = req.user.userId;
+    try{
+        const users = await User.find({_id : {$ne : loggedInUser}}).select('username profilePicture lastSeen isOnline about phoneNumber phoneSuffix').lean();
+        const userWithConversation = await Promise.all(
+            users.map(async(user) => {
+                const conversation = await Conversation.findOne({
+                    participants:{$all:[loggedInUser,user?._id]}
+                }).populate({
+                    path:'participants',
+                    select:'content createdAt sender receiver'
+                }).lean();
+                return {
+                    ...user,
+                    conversation : conversation?conversation:null,
+                    
+                }
+                
+            })
+        )
+        return responseHandler(res,200,'all users',userWithConversation);
+    }catch(error){
+        console.log(error);
+        return response(res,500,'internal server error');
+    }
+}
+
+module.exports = {sendOtp,VerifyOtp,updateProfile,logout,checkAuthenticated,getAllUser}

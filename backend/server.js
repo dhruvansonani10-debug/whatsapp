@@ -6,6 +6,7 @@ const connectDB = require('./config/db');
 
 const bodyparser = require('body-parser');
 const authRoute = require('./routes/authRoute');
+const chatRoute = require('./routes/chatRoute'); 
 
 dotenv.config();
 const app = express();
@@ -24,7 +25,7 @@ app.use(bodyparser.urlencoded({extended:true}));
 
 //routes
 app.use('/api/auth',authRoute);
-
+app.use('/api/chat',chatRoute);
 app.get('/',(req,res)=>{
     return res.send('Server is running');
 })
