@@ -1,4 +1,4 @@
-const Status = require('../models/Status')
+const Status = require('../models/Status.js')
 const {uploadFileToCloudinary} = require('../config/cloudinary.js');
 const Message = require('../models/Message.js');
 const response = require('../utils/responseHandler.js');
