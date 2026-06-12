@@ -65,6 +65,16 @@ exports.sendMessage = async(req,res)=>{
 
         const populatedMessage = await Message.findOne(message?._id).populate("sender","username profilePicture")
         .populate("receiver","username profilePicture")
+
+        //emit socket event for realtime
+        if(req.io && req.socketUserMap){
+            const receiverSocketId = req.socketUserMap.get(receiverId);
+            if(receiverSocketId){
+                req.io.to(receiverSocketId).emit("new_message",populatedMessage);
+                message.messageStatus = "delivered";
+                
+            }
+        }
         return responseHandler.response(res,201,"messagge sent successfully",populatedMessage)
     } catch (error) {
         console.log(error);
@@ -126,6 +136,21 @@ exports.markAsRead = async(req,res) => {
     try{
        let message = await Message.find({_id:{$in:messageIds},receiver:userId})
        await Message.updateMany({_id:{$in:messageIds},receiver:userId},{$set:{messageStatus:"read"}});
+//notify to original sender
+               //emit socket event for realtime
+        if(req.io && req.socketUserMap){
+            for(const message of messages){
+                const senderSocketId = req.socketUserMap.get(message.sender.toString());
+                if(senderSocketId){
+                    const updateMessage = {
+                        _id:message._id,
+                        messageStatus:"read"
+                    }
+                    req.io.to(senderSocketId).emit("message_read",updateMessage);
+                    await message.save();
+                }
+            }
+        }
        return responseHandler.response(res,200,'messages marked as read successfully',message);
     }
     catch(error){
@@ -150,6 +175,13 @@ exports.deleteMessage = async(req,res) => {
 
         }
         await message.deleteOne();
+                //emit socket event for realtime
+        if(req.io && req.socketUserMap){
+            const receiverSocketId = req.socketUserMap.get(message.receiver.toString());
+            if(receiverSocketId){
+                req.io.to(receiverSocketId).emit("message_deleted",{messageId:message._id});
+            }
+        }
         return responseHandler.response(res,200,'message deleted successfully',message);
     }
     catch(error){

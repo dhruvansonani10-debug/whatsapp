@@ -3,7 +3,7 @@ const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
-
+const mongoose = require('mongoose');
 const bodyparser = require('body-parser');
 const authRoute = require('./routes/authRoute');
 const chatRoute = require('./routes/chatRoute'); 
