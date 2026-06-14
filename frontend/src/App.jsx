@@ -11,7 +11,7 @@ function App() {
         <Route path="/user-login" element={<Login />} />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;
