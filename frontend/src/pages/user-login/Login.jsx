@@ -185,8 +185,7 @@ function Login() {
 
             {/* Action Submit Button */}
             <button type='submit' className='w-full bg-green-500 text-white py-2.5 font-medium rounded-md hover:bg-green-600 transition flex items-center justify-center'>
-              {loading && <FaSpinner className='animate-spin mr-2' />}
-              {loading ? 'Sending OTP...' : 'Send OTP'}
+              { loading ? <FaSpinner  /> : "send OTP"}
             </button>
           </form>
         )}
