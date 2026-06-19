@@ -1,10 +1,16 @@
-const twillo = require("twilio");
+require('dotenv').config();
+const twilio = require("twilio");
 
-const accountSid = process.env.TWILLO_ACCOUNT_SID;
-const authToken = process.env.TWILLO_AUTH_TOKEN;
-const serviceSid = process.env.TWILLO_SERVICE_SID;
+const accountSid = process.env.TWILIO_ACCOUNT_SID 
+const authToken = process.env.TWILIO_AUTH_TOKEN 
+const serviceSid = process.env.TWILIO_SERVICE_SID 
+if (!accountSid || !authToken || !serviceSid) {
+    throw new Error(
+        'Missing Twilio configuration: set TWILIO_ACCOUNT_SID/TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN/TWILIO_AUTH_TOKEN, and TWILIO_SERVICE_SID/TWILIO_SERVICE_SID.',
+    );
+}
 
-const client = twillo(accountSid, authToken);
+const client = twilio(accountSid, authToken);
 
 const sendOtpToPhoneNumber = async (phoneNumber) => {
     try {

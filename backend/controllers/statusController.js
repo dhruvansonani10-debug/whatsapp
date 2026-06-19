@@ -1,7 +1,7 @@
 const Status = require("../models/Status.js");
 const { uploadFileToCloudinary } = require("../config/cloudinary.js");
 const Message = require("../models/Message.js");
-const response = require("../utils/responseHandler.js");
+const responseHandler = require("../utils/responseHandler.js");
 
 exports.createStatus = async (req, res) => {
   try {
@@ -23,12 +23,12 @@ exports.createStatus = async (req, res) => {
       } else if (file.mimetype.startsWith("video")) {
         finalContentType = "video";
       } else {
-        return response(res, 400, "unsupported file type");
+        return responseHandler.response(res, 400, "unsupported file type");
       }
     } else if (content?.trim()) {
       finalContentType = "text";
     } else {
-      return response(res, 400, "message content is required");
+      return responseHandler.response(res, 400, "message content is required");
     }
 
     const expiresAt = new Date();
