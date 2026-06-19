@@ -1,15 +1,17 @@
-import React from 'react';
-import useLoginStore from '../../../store/useLoginStore.js';
-import countries from '../../../utils/countries.js';
-import * as Yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useNavigate } from 'react-router-dom';
-import useUserStore from '../../../store/useUserStore.js';
-import useThemeStore from '../../../store/themeStore.js';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { motion } from 'framer-motion';
-import { FaChevronDown, FaUser, FaWhatsapp, FaSpinner } from 'react-icons/fa';
+import React from "react";
+import useLoginStore from "../../../store/useLoginStore.js";
+import countries from "../../../utils/countries.js";
+import * as Yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useNavigate } from "react-router-dom";
+import useUserStore from "../../../store/useUserStore.js";
+import useThemeStore from "../../../store/themeStore.js";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { motion, updateMotionValuesFromProps } from "framer-motion";
+import { FaChevronDown, FaUser, FaWhatsapp, FaSpinner,FaArrowLeft } from "react-icons/fa";
+import { sendOtp, verifyOtp, updateUserProfile } from "../../services/user.service.js";
+import { toast } from "react-toastify";
 
 // Validation schema
 const loginValidationSchema = Yup.object()
@@ -94,6 +96,118 @@ function Login() {
       country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       country.dialCode.includes(searchTerm),
   );
+
+  const onLoginSubmit = async () => {
+    try {
+      setLoading(true);
+      if (email) {
+        const response = await sendOtp(null, null, email);
+        if (response.status === "success") {
+          toast.info("OTP is send to your email");
+          setUserPhoneData({ email });
+          setStep(2);
+        }
+      } else {
+        const response = await sendOtp(
+          phoneNumber,
+          selectCountry.dialCode
+        );
+        if (response.status === "success") {
+          toast.info("OTP is send to your phone number");
+          setUserPhoneData({
+            phoneNumber,
+            phoneSuffix: selectCountry.dialCode,
+          });
+          setStep(2);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onOtpSubmit = async () => {
+    try {
+      setLoading(true);
+      if (!userPhoneData) {
+        throw new Error("phone or email data is missing");
+      }
+      const otpString = otp.join("");
+      let response;
+      if (userPhoneData?.email) {
+        response = await verifyOtp(null, null,otpString, userPhoneData.email);
+      } else {
+        response = await verifyOtp(
+          userPhoneData.phoneNumber,
+          userPhoneData.phoneSuffix,
+          null,
+          otpString
+        );
+      }
+
+      if (response.status === "success") {
+        toast.success("OTP is verified successfully");
+        const user = response.data?.user;
+        if (user?.username && user?.profilePicture) {
+          setUser(user);
+          toast.success("welcome back on Whatsapp");
+          navigate("/");
+          resetLoginState();
+        } else {
+          setStep(3);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePictureFile(file);
+      setProfilePicture(URL.createObjectURL(file));
+    }
+  };
+
+  const onProfileSubmit = async () => {
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append("username", data.username);
+      formData.append("agreed", data.agreed);
+      if (profilePictureFile) {
+        formData.append("media", profilePictureFile);
+      } else {
+        formData.append("profilePicture", selectedAvatar);
+      }
+      await updateUserProfile(formData);
+      toast.success("welcome back to Whatsapp");
+      navigate("/");
+      resetLoginState();
+    } catch (error) {
+      console.log(error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index, value) => {
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  }
 
   const ProgressBar = () => (
     <div
@@ -251,8 +365,11 @@ function Login() {
             </div>
 
             {/* Action Submit Button */}
-            <button type='submit' className='w-full bg-green-500 text-white py-2.5 font-medium rounded-md hover:bg-green-600 transition flex items-center justify-center'>
-              { loading ? <FaSpinner  /> : "send OTP"}
+            <button
+              type="submit"
+              className="w-full bg-green-500 text-white py-2.5 font-medium rounded-md hover:bg-green-600 transition flex items-center justify-center"
+            >
+              {loading ? <FaSpinner /> : "send OTP"}
             </button>
           </form>
         )}
