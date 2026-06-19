@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const responseHandler = require("../utils/responseHandler");
+const response = require("../utils/responseHandler");
 const otpGenrate = require('../utils/otpGenerator');
 const sendOtpToEmail = require('../services/emailservice');
 const Conversation = require('../models/Conversation');
@@ -35,7 +35,7 @@ const sendOtp = async (req,res)=>{
         const fullPhoneNUmber = `${phoneSuffix}${phoneNumber}`;
         user = await User.findOne({phoneNumber});
         if(!user){
-            user = await new User ({phoneNubmer,phoneSuffix});
+            user = new User({phoneNumber, phoneSuffix ,username: `User_${phoneNumber.slice(-5)}`, profilePicture: "https://api.dicebear.com/6.x/avataaars/svg?seed=Felix"});
         }
         await tiwiloService.sendOtpToPhoneNumber(fullPhoneNUmber);
         await user.save();
@@ -60,7 +60,7 @@ const VerifyOtp = async(req,res)=>{
             return response(res,404,'user not found');
         }
         const now = new Date();
-        if(user.emailOtp || String(user.emailOtp) !== String(otp) || now > new Date(user.emailOtpExpiry)){
+        if(!user.emailOtp || String(user.emailOtp) !== String(otp) || now > new Date(user.emailOtpExpiry)){
             return response(res,400,'invalid otp or expired');
         }
         user.emailOtp = null;
@@ -76,10 +76,10 @@ const VerifyOtp = async(req,res)=>{
         const fullPhoneNUmber = `${phoneSuffix}${phoneNumber}`;
         user = await User.findOne({phoneNumber});
         if(!user){
-            user = await new User ({phoneNubmer,phoneSuffix});
+            user = new User({phoneNumber, phoneSuffix});
         }
         const result = await tiwiloService.VerifyOtp(fullPhoneNUmber,otp);
-        if(result.stauts !== 'approved'){
+        if(result.status !== 'approved'){
             return response(res,400,'invalid otp')
         }
         user.isVerified = true;
@@ -182,7 +182,7 @@ const getAllUser = async(req,res) => {
                 
             })
         )
-        return responseHandler(res,200,'all users',userWithConversation);
+        return response(res,200,'all users',userWithConversation);
     }catch(error){
         console.log(error);
         return response(res,500,'internal server error');

@@ -1,14 +1,14 @@
-const response = (res,statusCode,message,data={}) =>{
-    if(!res) {
+const response = (res, statusCode, message, data = {}) => {
+    if (!res) {
         console.log(message);
         return;
     }
 
-    const responseObject = {
-        status:statusCode < 400 ? 'sucess':'error',
+    return res.status(statusCode).json({
+        status: statusCode < 400 ? 'success' : 'error',
         message,
-        data
-    }
-}
+        data,
+    });
+};
 
-module.export = response;
+module.exports = response;
