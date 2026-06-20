@@ -9,7 +9,7 @@ import useThemeStore from "../../../store/themeStore.js";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion, updateMotionValuesFromProps } from "framer-motion";
-import { FaChevronDown, FaUser, FaWhatsapp, FaSpinner,FaArrowLeft } from "react-icons/fa";
+import { FaChevronDown, FaUser, FaWhatsapp, FaSpinner,FaArrowLeft, FaPlus } from "react-icons/fa";
 import { sendOtp, verifyOtp, updateUserProfile } from "../../services/user.service.js";
 import { toast } from "react-toastify";
 
@@ -82,6 +82,7 @@ function Login() {
   const {
     register: loginRegister,
     handleSubmit: handleLoginSubmit,
+    watch,
     formState: { errors: loginErrors },
   } = useForm({
     resolver: yupResolver(loginValidationSchema),
@@ -90,6 +91,14 @@ function Login() {
     handleSubmit: handleOtpSubmit,
     formState: { errors: otpErrors = {} }, 
   } = useForm();
+
+  const {
+    register: profileRegister,
+    handleSubmit: handleProfileSubmit,
+    formState: { errors: profileErrors },
+  } = useForm({
+    resolver: yupResolver(profileValidationSchema),
+  });
 
   const filterCountries = countries.filter(
     (country) =>
@@ -168,7 +177,7 @@ function Login() {
     }
   };
 
-  const handleChange = (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setProfilePictureFile(file);
@@ -179,7 +188,7 @@ function Login() {
 
   
 
-  const onProfileSubmit = async () => {
+  const onProfileSubmit = async (data) => {
     try {
       setLoading(true);
       const formData = new FormData();
@@ -427,6 +436,111 @@ function Login() {
         Wrong number ? go back
       </button>
     </div>
+  </form>
+)}
+        {step === 3 && (
+  <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="flex flex-col items-center w-full">
+    {/* Profile Picture Preview */}
+    <div className="relative w-24 h-24 mb-4 flex-shrink-0">
+      <img 
+        src={profilePicture || selectedAvatar} 
+        alt="profile" 
+        className="w-full h-full rounded-full object-cover border-2 border-gray-100 shadow-sm" 
+      />
+      <label 
+        htmlFor="profile-picture" 
+        className="absolute bottom-0 right-0 bg-green-500 text-white p-2 rounded-full cursor-pointer hover:bg-green-600 transition duration-300 shadow-md z-10"
+      >
+        <FaPlus className="w-3 h-3"/>
+      </label>
+      <input 
+        type="file" 
+        id="profile-picture" 
+        accept="image/*" 
+        onChange={handleFileChange} 
+        className="hidden" 
+      />
+    </div>
+
+    {/* Avatar Label */}
+    <p className={`text-sm font-medium mb-4 ${theme === "dark" ? "text-gray-300" : "text-gray-500"}`}> 
+      Choose an avatar 
+    </p>
+
+    {/* Avatar Selection List */}
+    <div className="flex flex-wrap justify-center gap-3 mb-6 w-full px-2">
+      {avatars.map((avatar, index) => (
+        <img 
+          src={avatar} 
+          alt={`avatar-${index+1}`} 
+          key={index} 
+          onClick={() => {
+            setSelectedAvatar(avatar);
+            setProfilePicture(null); // અવતાર ક્લિક થાય ત્યારે અપલોડ કરેલી ઈમેજ ક્લિયર થશે
+          }}
+          className={`w-12 h-12 rounded-full cursor-pointer transition duration-200 ease-in-out transform hover:scale-110 object-cover ${
+            selectedAvatar === avatar && !profilePicture
+              ? "ring-2 ring-green-500 ring-offset-2 scale-105" 
+              : ""
+          }`} 
+        />
+      ))}
+    </div>
+
+    {/* Username Input Container */}
+    <div className="relative w-full mb-1">
+      <FaUser 
+        className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400':'text-gray-400'}`} 
+      />
+      <input
+        type="text"
+        {...profileRegister("username")}
+        placeholder="Username"
+        className={`w-full pl-10 pr-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
+          theme === 'dark' 
+            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+        }`}
+      />
+    </div>
+    {profileErrors.username && (
+      <p className="text-red-500 text-left w-full text-xs mb-2 animate-pulse pl-1">
+        {profileErrors.username.message}
+      </p>
+    )}
+
+    {/* Terms & Conditions Checkbox */}
+    <div className="flex items-center space-x-2 w-full mt-3 mb-1 pl-1">
+      <input
+        {...profileRegister('agreed')}
+        type="checkbox"
+        id="terms"
+        className={`w-4 h-4 rounded cursor-pointer accent-green-500 ${
+          theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'border-gray-300'
+        } focus:ring-green-500`}
+      />
+      <label htmlFor="terms" className={`text-sm cursor-pointer select-none ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+        I agree to the <a href="#" className="text-red-500 hover:underline font-medium transition ml-0.5">Terms and Conditions</a>
+      </label>
+    </div>
+    {profileErrors.agreed && (
+      <p className="text-red-500 text-left w-full text-xs mb-2 animate-pulse pl-1">
+        {profileErrors.agreed.message}
+      </p>  
+    )}
+
+    {/* Submit Button */}
+    <button
+      type="submit"
+      disabled={!watch("agreed") || loading}
+      className={`w-full py-3 rounded-md flex items-center justify-center mt-4 font-semibold text-base transition duration-200 ${
+        !watch("agreed") || loading 
+          ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none' 
+          : 'bg-green-500 text-white hover:bg-green-600 active:scale-[0.99] shadow-md shadow-green-500/20'
+      }`}
+    >
+      {loading ? <FaSpinner className="animate-spin text-xl" /> : "Create Profile"}
+    </button>
   </form>
 )}
       </motion.div>
