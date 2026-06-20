@@ -95,6 +95,7 @@ function Login() {
   const {
     register: profileRegister,
     handleSubmit: handleProfileSubmit,
+    watch: watchProfile,
     formState: { errors: profileErrors },
   } = useForm({
     resolver: yupResolver(profileValidationSchema),
@@ -532,9 +533,9 @@ function Login() {
     {/* Submit Button */}
     <button
       type="submit"
-      disabled={!watch("agreed") || loading}
+      disabled={!watchProfile("agreed") || loading}
       className={`w-full py-3 rounded-md flex items-center justify-center mt-4 font-semibold text-base transition duration-200 ${
-        !watch("agreed") || loading 
+        !watchProfile("agreed") || loading 
           ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none' 
           : 'bg-green-500 text-white hover:bg-green-600 active:scale-[0.99] shadow-md shadow-green-500/20'
       }`}
