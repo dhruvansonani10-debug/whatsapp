@@ -140,43 +140,53 @@ function Login() {
   };
 
   const onOtpSubmit = async () => {
-    try {
-      setLoading(true);
-      if (!userPhoneData) {
-        throw new Error("phone or email data is missing");
-      }
-      const otpString = otp.join("");
-      let response;
-      if (userPhoneData?.email) {
-        response = await verifyOtp(null, null,otpString, userPhoneData.email);
-      } else {
-        response = await verifyOtp(
-          userPhoneData.phoneNumber,
-          userPhoneData.phoneSuffix,
-          null,
-          otpString
-        );
-      }
-
-      if (response.status === "success") {
-        toast.success("OTP is verified successfully");
-        const user = response.data?.user;
-        if (user?.username && user?.profilePicture) {
-          setUser(user);
-          toast.success("welcome back on Whatsapp");
-          navigate("/");
-          resetLoginState();
-        } else {
-          setStep(3);
-        }
-      }
-    } catch (error) {
-      console.log(error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    setError(null); // જૂની એરર ક્લિયર કરો
+    
+    if (!userPhoneData) {
+      throw new Error("Phone or email data is missing");
     }
-  };
+    
+    const otpString = otp.join("");
+    let response;
+    
+    // 🟢 સુધારેલો ક્રમ: (phoneNumber, phoneSuffix, email, otp)
+    if (userPhoneData?.email) {
+      // ફોન નંબર અને સફિક્સ null, ત્રીજો ઈમેલ, ચોથો OTP
+      response = await verifyOtp(null, null, userPhoneData.email, otpString);
+    } else {
+      // પહેલો ફોન, બીજો સફિક્સ, ત્રીજો ઈમેલ null, ચોથો OTP
+      response = await verifyOtp(
+        userPhoneData.phoneNumber,
+        userPhoneData.phoneSuffix,
+        null,
+        otpString
+      );
+    }
+
+    if (response.status === "success") {
+      toast.success("OTP is verified successfully");
+      
+      // 🟢 બેકએન્ડ રિસ્પોન્સ હેન્ડલર મુજબ યુઝર ડેટા મેળવો
+      const user = response.data; // જો ડેટા સીધો response.data માં હોય તો
+      
+      if (user?.username && user?.profilePicture) {
+        setUser(user);
+        toast.success("Welcome back to WhatsApp");
+        navigate("/");
+        resetLoginState();
+      } else {
+        setStep(3); // જો નવો યુઝર હશે તો જ સ્ટેપ ૩ પર જશે
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    setError(error.response?.data?.message || error.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
