@@ -171,7 +171,7 @@ function Login() {
       // 🟢 બેકએન્ડ રિસ્પોન્સ હેન્ડલર મુજબ યુઝર ડેટા મેળવો
       const user = response.data; // જો ડેટા સીધો response.data માં હોય તો
       
-      if (user?.username && user?.profilePicture) {
+      if (user && user.agreed === true && !user.username.startsWith("User_")) {
         setUser(user);
         toast.success("Welcome back to WhatsApp");
         navigate("/");
