@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import useUserStore from "../../store/useUserStore";
 import useLayoutStore from "../../store/layoutStore";
-import { FaWhatsapp,FaUser,FaCog,FaRegListAlt,FaPlus,FaBars } from "react-icons/fa";
+import { FaWhatsapp,FaUser,FaCog,FaRegListAlt,FaPlus,FaBars,FaUserCircle } from "react-icons/fa";
 import {MdRadioButtonChecked} from "react-icons/md";
 
 function Sidebar() {
@@ -60,6 +60,32 @@ function Sidebar() {
       >
         <MdRadioButtonChecked
           className={`h-6 w-6 ${activeTab === "status" ? (theme === "dark" ? "text-gray-800" : "") : theme === "dark" ? "text-gray-300" : "text-gray-800"}`}
+        />
+      </Link>
+      {!isMobile && <div className="flex-grow"/>}
+
+      <Link
+        to="/user-profile"
+        className={`${isMobile ? "" : "mb-8"} 
+          ${activeTab === "profile" && "bg-gray-300 shadow-sm p-2 rounded-full"} 
+          focus:outline-none `}
+      >
+        {user?.profilePicture ? (
+          <img src={user?.profilePicture} alt="User" className="h-6 w-6 rounded-full" />
+        ):(
+        <FaUserCircle
+          className={`h-6 w-6 ${activeTab === "profile" ? (theme === "dark" ? "text-gray-800" : "") : theme === "dark" ? "text-gray-300" : "text-gray-800"}`}
+        />)}
+      </Link>
+
+      <Link
+        to="/setting"
+        className={`${isMobile ? "" : "mb-8"} 
+          ${activeTab === "setting" && "bg-gray-300 shadow-sm p-2 rounded-full"} 
+          focus:outline-none `}
+      >
+        <FaCog
+          className={`h-6 w-6 ${activeTab === "setting" ? (theme === "dark" ? "text-gray-800" : "") : theme === "dark" ? "text-gray-300" : "text-gray-800"}`}
         />
       </Link>
     </>

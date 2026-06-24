@@ -7,7 +7,6 @@ import { getAllUsers } from "../../api/message";
 import { useState,useEffect } from "react";
 
 function HomePage() {
-  const setSelectedContact = useLayoutStore(state => state.setSelectedContact);
   const [allUsers,setAllUsers] = useState([]);
   const getAllUser = async()=>{
     try {
@@ -32,7 +31,7 @@ function HomePage() {
         transition={{ duration: 0.5 }}
         className="h-full"
       >
-        <ChatList contacts={allUsers} setSelectedContact={setSelectedContact}/>
+        <ChatList contacts={allUsers} />
       </motion.div>
     </Layout>
   );
