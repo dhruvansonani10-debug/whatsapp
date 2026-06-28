@@ -176,7 +176,7 @@ const getAllUser = async(req,res) => {
                 }).lean();
                 return {
                     ...user,
-                    conversation : conversation?conversation:null,
+                    conversation : conversation || null,
                     
                 }
                 
